@@ -31,6 +31,7 @@
             return;
         }
         var data = {
+            class: 'Call',
             action: 'validatePassword',
             data: [password]
         };

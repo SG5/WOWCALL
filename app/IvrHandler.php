@@ -1,4 +1,5 @@
 <?php
+use google\appengine\api\cloud_storage\CloudStorageTools;
 
 class IvrHandler
 {
@@ -33,6 +34,8 @@ class IvrHandler
 
     public function getXml($phone)
     {
+        $uploadUrl = $this->_getGsUploadUrl();
+
         $xmlWriter = new XMLWriter();
         $xmlWriter->openMemory();
 
@@ -45,13 +48,25 @@ class IvrHandler
         $xmlWriter->startElement("dtmf");
         $xmlWriter->writeAttribute("wait", "10");
 
-        $xmlWriter->writeRaw("<key value=\"1\"><redirect>+7{$phone}</redirect></key>");
+        $xmlWriter->writeRaw(<<<XML
+<key value="1"><redirect>+7{$phone}</redirect></key>
+XML
+);
         $xmlWriter->writeRaw('<key value="2"><audio>https://upload.wikimedia.org/wikipedia/commons/0/03/Linus-linux.ogg</audio></key>');
-        $xmlWriter->writeRaw('<key value="3"><record length="10" name="record1" submit="http://www.yoursite.ru/record_submit.php"></record></key>');
-
+        $xmlWriter->writeRaw(<<<XML
+<key value="3"><record length="10" name="record" submit="{$uploadUrl}"></record></key>
+XML
+);
         $xmlWriter->endElement();
 
         return $xmlWriter->outputMemory();
+    }
+
+    private function _getGsUploadUrl()
+    {
+        return "https://{$this->_host}";
+        $options = [ 'gs_bucket_name' => FileHandler::WOWCALL_BUCKET ];
+        return CloudStorageTools::createUploadUrl('/front.php?file=record', $options);
     }
 
 }
